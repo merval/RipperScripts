@@ -1,31 +1,34 @@
 #!/bin/bash
 
+logToFile() {
+  echo "`date` | $1" >> "${LOGFILE}"
+}
+
 LOGFILE="~/ripperlog"
 
 #Where do you store your media?
 MEDIA="/media/Movies"
-DATE=$(date +%Y-%m-%d:%H:%M:%S)
 
-echo "$DATE - DVD INSERTED | Launching Ripper" >> $LOGFILE
-echo "$DATE - Sleeping for 8 seconds" >> $LOGFILE
+logToFile "DVD INSERTED | Launching Ripper"
+logToFile "Sleeping for 8 seconds"
 sleep 8;
-DATE=$(date +%Y-%m-%d:%H:%M:%S)
-echo "$DATE - Mounting DVD" >> $LOGFILE
+
+logToFile "Mounting DVD"
 mount /dev/dvd /media/dvd
 title="$(lsdvd -c | grep "Disc Title" | gawk '{print $3}')"
-DATE=$(date +%Y-%m-%d:%H:%M:%S)
-echo "$DATE - DVD Title is $title" >> $LOGFILE
+
+logToFile "DVD Title is $title"
 if [ -f $MEDIA/$title.mkv ]; then
-die() { echo "$DATE - $title already exists! Stopping" >> $LOGFILE exit 1; }
+die() { logToFile "$title already exists! Stopping" exit 1; }
 else
-DATE=$(date +%Y-%m-%d:%H:%M:%S)
-echo "$DATE - Ripping of $title will now start" >> $LOGFILE
+
+logToFile "Ripping of $title will now start"
 HandBrakeCLI --main-feature -i /media/dvd -o $MEDIA/$title.mkv -e x264  -q 20.0 -a 1 -E faac -B 160 -6 dpl2 -R Auto -D 0.0 --audio-copy-mask aac,ac3,dtshd,dts,mp3 --audio-fallback ffac3 -f mp4 --loose-anamorphic --modulus 2 -m --x264-preset veryfast --h264-profile main --h264-level 4.0 > ~/handbrake-log
-DATE=$(date +%Y-%m-%d:%H:%M:%S)
-echo "$DATE - Done ripping $title" >> $LOGFILE
+
+logToFile "Done ripping $title"
 fi
-DATE=$(date +%Y-%m-%d:%H:%M:%S)
-echo "$DATE - Unmounting DVD" >> $LOGFILE
+
+logToFile "Unmounting and ejecting DVD"
 umount /media/dvd
 eject
 fi
